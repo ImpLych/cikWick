@@ -54,8 +54,8 @@ public class PlayerController : MonoBehaviour
 
     private void SetInputs()
     {
-        _horizontalInput = Input.GetAxis("Horizontal");
-        _verticalInput = Input.GetAxis("Vertical");
+        _horizontalInput = Input.GetAxisRaw("Horizontal");
+        _verticalInput = Input.GetAxisRaw("Vertical");
 
         if (Input.GetKeyDown(_slideKey))
         {
