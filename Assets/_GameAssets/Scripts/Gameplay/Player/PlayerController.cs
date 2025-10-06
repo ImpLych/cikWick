@@ -1,3 +1,4 @@
+using System;
 using NUnit.Framework;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -5,6 +6,26 @@ using UnityEngine.EventSystems;
 
 public class PlayerController : MonoBehaviour
 {
+    private void Awake()
+    {
+        _stateController = GetComponent<StateController>();
+        _playerRigidbody = GetComponent<Rigidbody>();
+        _playerRigidbody.freezeRotation = true;
+
+    }
+    private void Update()
+    {
+        SetInputs();
+        SetStates();
+        SetPlayerDrag();
+        LimitedPlayerSpeed();
+
+    }
+    private void FixedUpdate()
+    {
+        SetPlayerMovement();
+    }
+    public event Action OnPlayerJumped;
     [Header("References")]
     [SerializeField] private Transform _orientationtransform;
     [Header("Movement Settings")]
@@ -37,28 +58,9 @@ public class PlayerController : MonoBehaviour
     private float _horizontalInput, _verticalInput;
     private Vector3 _movementDirection;
     private bool _isSliding;
+    private PlayerController _playerController;
 
-
-
-    private void Awake()
-    {
-        _stateController = GetComponent<StateController>();
-        _playerRigidbody = GetComponent<Rigidbody>();
-        _playerRigidbody.freezeRotation = true;
-
-    }
-    private void Update()
-    {
-        SetInputs();
-        SetStates();
-        SetPlayerDrag();
-        LimitedPlayerSpeed();
-
-    }
-    private void FixedUpdate()
-    {
-        SetPlayerMovement();
-    }
+    
 
     private void SetInputs()
     {
@@ -68,16 +70,14 @@ public class PlayerController : MonoBehaviour
         if (Input.GetKeyDown(_slideKey))
         {
             _isSliding = true;
-            Debug.Log("Player Sliding!");
         }
         else if (Input.GetKeyDown(_movementKey))
         {
             _isSliding = false;
-            Debug.Log("Player Moving!");
         }
         else if (Input.GetKey(_jumpKey) && _canJump && IsGrounded())
         { //Zıplama işlemi gerçekleşecek
-            _canJump = true;
+            _canJump = false;
             SetplayerJumping();
             Invoke(nameof(ResetJumping), _jumpCoolDown);
         }
@@ -149,6 +149,7 @@ public class PlayerController : MonoBehaviour
     }
     private void SetplayerJumping()
     {
+        OnPlayerJumped?.Invoke();
         _playerRigidbody.linearVelocity = new Vector3(_playerRigidbody.linearVelocity.x, 0f, _playerRigidbody.linearVelocity.z);
         _playerRigidbody.AddForce(transform.up * _jumpForce, ForceMode.Impulse);
 
